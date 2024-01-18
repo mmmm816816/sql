@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alasql/4.2.3/alasql.min.js"></script>
+  </head>
+  <body>
+    <script>
+      var data = [
+        {'column1': 'c', 'column2':'a@gmail.com'},
+        {'column1': 'b', 'column2':'a@gmail.com'},
+        {'column1': 'a', 'column2':'a@gmail.com'}
+      ]
+      ;
+      //var res1 = alasql("SELECT a.* FROM ? a inner join ? b on a.column1 = b.column1", [data, data]);
+      //var res = alasql("select count(t1.column2), t1.column1, t1.column2 from ? t1 cross join ? t2 where t1.column2 = t2.column2 and t1.column1 < t2.column1 group by t1.column1, t1.column2 having count(t1.column1) = (select count(column2)-1 from ? where column2 = t1.column2)", [data, data, data]);
+      var res = alasql("select distinct on (column2) column2, column1 from ?", [data]);
+      document.body.innerHTML = JSON.stringify(res);
+    </script>
+  </body>
+</html>
