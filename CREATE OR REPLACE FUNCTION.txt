@@ -1,0 +1,32 @@
+CREATE OR REPLACE FUNCTION merge() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  INSERT INTO tbl2 VALUES (CONCAT('a',NEW.column1)); 
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER merge_trg AFTER INSERT ON tbl1 FOR EACH ROW EXECUTE FUNCTION merge();
+
+postgres=# select * from tbl2;
+ column1 
+---------
+ a
+ b
+ e
+ f
+(4 rows)
+
+postgres=# insert into tbl1 values ('z');
+INSERT 0 1
+postgres=# select * from tbl2;
+ column1 
+---------
+ a
+ b
+ e
+ f
+ az
+(5 rows)
+
+Trigger function：トリガー条件が発動すると実行する関数
+Trigger: トリガー条件
