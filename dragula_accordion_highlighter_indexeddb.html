@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!--dragula-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.css" />
+
+    <!--sql highlight-->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"> -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/pgsql.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script> -->
+
+    <style>
+        body {
+            background-color: #942A57;
+            margin: 0 auto;
+        }
+
+        /* dragula-specific example page styles */
+        .wrapper {
+            display: table;
+        }
+
+        .dragula-container {
+            display: table-cell;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* applied to left container */
+        /* .dragula-container:nth-child(odd) {
+            background-color: rgba(0, 0, 0, 0.2);
+        } */
+
+        /* applied to right container */
+        .dragula-container:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* .dragula-container div { */
+        .dragula-container .card {
+            margin: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease-in-out;
+        }
+
+        .dragula-container .accordion-item {
+            margin: 0px 10px 0px 10px;
+            padding: 0px;
+        }
+
+        .dragula-container .ex-moved {
+            background-color: #e74c3c;
+        }
+
+        #right1>.card,
+        #right2>.card,
+        #right3>.card {
+            color: rgb(255, 180, 180);
+            display: block;
+            /* inline svg & text*/
+        }
+
+        #left-handles>div,
+        #right-handles>div {
+            cursor: initial;
+        }
+
+        #left {
+            min-width: 100px;
+            /* max-width: 600px; */
+        }
+
+        .handle {
+            padding: 0 5px;
+            margin-right: 5px;
+            background-color: rgba(0, 0, 0, 0.4);
+            cursor: move;
+        }
+
+        span {
+            display: block;
+            overflow: hidden;
+            position: relative;
+            max-width: none;
+            color: rgb(255, 255, 255);
+        }
+
+        .accordion-collapse {
+            color: white;
+        }
+
+        .accordion-item {
+            /* border: unset; */
+            border-color: black;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .accordion-body {
+            padding: 0px;
+        }
+
+        .accordion {
+            --bs-accordion-border-color: rgba(0, 0, 0, 0);
+            --bs-accordion-btn-bg: unset;
+            /* --bs-accordion-btn-focus-border-color: rgb(255, 0, 0); */
+            /* --bs-focus-ring-color: rgba(253, 13, 110, 0.25); */
+            /* --bs-accordion-btn-focus-border-color: rgb(253, 13, 110); */
+            --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+            --bs-accordion-active-color: rgb(255, 180, 180);
+            --bs-accordion-active-bg: rgba(0, 0, 0, 0.2);
+            /* --bs-accordion-btn-focus-border-color: unset; */
+            padding: 10px 0px 10px 0px;
+            --bs-accordion-btn-active-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffb4b4'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e")
+                /* %23 => # */
+        }
+
+        .wrapper {
+            padding-left: 0px;
+        }
+
+        #sql pre {
+            margin-top: 0px;
+            margin-bottom: 0px;
+            /* overflow: unset; */
+        }
+
+        #sql {
+            /* background-color: rgba(0, 0, 0, 0.1); */
+            position: relative;
+        }
+
+        .svg-icon {
+            /* margin-right: 4px; */
+            fill: rgb(255, 180, 180);
+            /* opacity: .6; */
+        }
+
+        .language {
+            position: absolute;
+            top: 0;
+            right: 0px;
+            background-color: black;
+            padding: 1px 4px 1px 4px;
+        }
+
+        #execute-btn {
+            position: absolute;
+            top: 28px;
+            right: 8px;
+        }
+
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .navbar-brand {
+            color: white;
+            --bs-navbar-brand-hover-color: white;
+        }
+
+        .navbar-brand>img {
+            width: 40px;
+            overflow: hidden;
+            margin: -8px -8px 0px 0px
+        }
+
+        .form-select {
+            background-color: rgba(255,255,255,0.5);
+        }
+
+        .input-group {
+            max-width: 300px;
+        }
+
+        .btn-sm {
+            max-width: 100px;
+            font-size: 8px;
+        }
+
+        span.badge {
+            background-color: rgba(255, 255, 255, 0);
+        }
+    </style>
+</head>
+
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="box-arrow-right" viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+                d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+            <path fill-rule="evenodd"
+                d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+        </symbol>
+        <symbol id="box-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+                d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z" />
+            <path fill-rule="evenodd"
+                d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z" />
+        </symbol>
+        <symbol id="x" viewBox="0 0 16 16">
+            <path
+                d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+        </symbol>
+    </svg>
+    <nav class="navbar navbar-light">
+        <div class="container-fluid d-flex justify-content-between">
+            <a class="navbar-brand">
+                <img src="https://bevacqua.github.io/dragula/resources/icon.svg" alt="Logo">
+                ragula
+            </a>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-light btn-sm" type="button" onclick="createDb();">createDb()</button>
+                <button class="btn btn-outline-light btn-sm" type="button"
+                    onclick="createObjectStore();">createObjectStore()</button>
+                <button class="btn btn-outline-light btn-sm" type="button"
+                    onclick="deleteObjectStore();">deleteObjectStore()</button>
+                <button class="btn btn-outline-light btn-sm" type="button" onclick="deleteDb();">deleteDb()</button>
+            </div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-light btn-sm" type="button"
+                    onclick="crudOperation('select');">crudOperation('select')</button>
+                <button class="btn btn-outline-light btn-sm" type="button"
+                    onclick="crudOperation('update');">crudOperation('update')</button>
+                <!-- <button class="btn btn-outline-light btn-sm" type="button"
+                    onclick="crudOperation('delete');">crudOperation('delete')</button> -->
+            </div>
+            <form class="input-group">
+                <select class="form-select focus-ring focus-ring-light" name="" id="">
+                    <option value="">aa</option>
+                    <option value="">bb</option>
+                    <option value="">cc</option>
+                </select>
+                <!-- <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"> -->
+                <!-- <button class="btn btn-outline-light" type="submit">Save</button> -->
+                <input class="btn btn-outline-light" type="button" value="resetDb()" onclick="resetDb();">
+            </form>
+        </div>
+    </nav>
+    <div class="container pt-3 row">
+        <div class="col">
+            <div id="sql">
+                <pre><code id="sqls" class="language-sql">select R1, R2, R3 from tbl;</code><small class="language"><span>psql/plpgsql</span></small><button id="execute-btn" class="btn btn-light">Run</button></pre>
+            </div>
+            <hr>
+            <p>Success</p>
+            <p id="successElm"></p>
+            <hr>
+            <p>Error</p>
+            <p id="errorElm"></p>
+        </div>
+        <div class='wrapper col'>
+            <div id="left" class="dragula-container">
+                <div class="card">
+                    <!-- <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">99+</span> -->
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                        onclick="deleteMe(this);">
+                        <svg class="svg-icon" width="12" height="12">
+                            <use xlink:href="#x" />
+                        </svg>
+                    </span>
+                    L1
+                </div>
+                <div class="card">
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                        onclick="deleteMe(this);">
+                        <svg class="svg-icon" width="12" height="12">
+                            <use xlink:href="#x" />
+                        </svg>
+                    </span>
+                    L2
+                </div>
+                <div class="card">
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                        onclick="deleteMe(this);">
+                        <svg class="svg-icon" width="12" height="12">
+                            <use xlink:href="#x" />
+                        </svg>
+                    </span>
+                    L3
+                </div>
+            </div>
+            <div class="accordion dragula-container">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                            aria-controls="panelsStayOpen-collapseOne">
+                            Customer Domain
+                        </button>
+                    </h2>
+                    <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show"
+                        aria-labelledby="panelsStayOpen-headingOne">
+                        <div class="accordion-body" id="right1">
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R1_1</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R1_2</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R1_3</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R1_4</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                            aria-controls="panelsStayOpen-collapseTwo">
+                            Service Domain
+                        </button>
+                    </h2>
+                    <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse"
+                        aria-labelledby="panelsStayOpen-headingTwo">
+                        <div class="accordion-body" id="right2">
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R2_1</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R2_2</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R2_3</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R2_4</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="panelsStayOpen-headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false"
+                            aria-controls="panelsStayOpen-collapseThree">
+                            Product Domain
+                        </button>
+                    </h2>
+                    <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse"
+                        aria-labelledby="panelsStayOpen-headingThree">
+                        <div class="accordion-body" id="right3">
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R3_1</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R3_2</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R3_3</div>
+                            <div class="card"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>R3_4</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        dragula([document.querySelector('#right1'), document.querySelector('#left')], {
+            copy: true,
+            moves: function (elm, container, handle) {
+                return handle.classList.contains('handle'); // elements allowed to drag
+            }
+        }).on('drop', (elm) => {
+            elm.className += ' ex-moved card';
+            elm.children[0].remove(); // remove handle
+
+            let spanElm = document.createElement('span');
+            spanElm.className = 'svg-icon position-absolute top-0 start-100 translate-middle badge rounded-pill';
+            spanElm.setAttribute('onclick', 'deleteMe(this);');
+            let svgElm = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgElm.setAttribute('width', '12');
+            svgElm.setAttribute('height', '12');
+            let useElm = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            useElm.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#x');
+            svgElm.appendChild(useElm);
+            spanElm.appendChild(svgElm);
+            elm.prepend(spanElm);
+        });
+        dragula([document.querySelector('#right2'), document.querySelector('#left')], {
+            copy: true,
+            moves: function (elm, container, handle) {
+                return handle.classList.contains('handle'); // elements allowed to drag
+            }
+        }).on('drop', (elm) => {
+            elm.className += ' ex-moved card';
+            elm.children[0].remove();
+
+            let spanElm = document.createElement('span');
+            spanElm.className = 'svg-icon position-absolute top-0 start-100 translate-middle badge rounded-pill';
+            spanElm.setAttribute('onclick', 'deleteMe(this);');
+            let svgElm = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgElm.setAttribute('width', '12');
+            svgElm.setAttribute('height', '12');
+            let useElm = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            useElm.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#x');
+            svgElm.appendChild(useElm);
+            spanElm.appendChild(svgElm);
+            elm.prepend(spanElm);
+        });
+        dragula([document.querySelector('#right3'), document.querySelector('#left')], {
+            copy: true,
+            moves: function (elm, container, handle) {
+                return handle.classList.contains('handle'); // elements allowed to drag
+            }
+        }).on('drop', (elm) => {
+            elm.className += ' ex-moved card';
+            elm.children[0].remove();
+
+            let spanElm = document.createElement('span');
+            spanElm.className = 'svg-icon position-absolute top-0 start-100 translate-middle badge rounded-pill';
+            spanElm.setAttribute('onclick', 'deleteMe(this);');
+            let svgElm = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgElm.setAttribute('width', '12');
+            svgElm.setAttribute('height', '12');
+            let useElm = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            useElm.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#x');
+            svgElm.appendChild(useElm);
+            spanElm.appendChild(svgElm);
+            elm.prepend(spanElm);
+        });
+        dragula([document.querySelector('#left')], {
+            removeOnSpill: true,
+        }).on('drag', (elm) => { // after drag
+            elm.className = elm.className.replace('ex-moved', '');
+        });
+    </script>
+    <script>
+        const target = document.getElementById('left');
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                showSQL();
+            });
+        });
+        const config = {
+            attribute: true,
+            childList: true,
+            CharacterData: true,
+        };
+        observer.observe(target, config);
+        function showSQL() {
+            let columns = [];
+            for (let i = 0; i < $('#left').children().length; i++) {
+                columns.push($('#left').children()[i].innerText);
+            }
+            $('#sql').html('<pre><code id="sqls" class="language-sql">select ' + columns.join(',\n ') + ' from tbl;</code><small class="language"><span>psql/plpgsql</span></small><button id="execute-btn" class="btn btn-light">Run</button></pre>');
+            hljs.highlightAll();
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <script>
+        const DB_NAME = "MyFavoriteSetup";
+        const DB_VERSION = 1;
+        const DB_VERSION_AFTER_CREATED = 2;
+        const DB_VERSION_AFTER_DELETED = 3;
+        const objectStoreName = "columns";
+        const errorElm = document.getElementById("errorElm");
+        const successElm = document.getElementById("successElm");
+        const newItems = [
+            {
+                id: '#12345#user_id',
+                name: 'test taro',
+                taskTitle: "Walk dog",
+                hours: 19,
+                minutes: 30,
+                day: 24,
+                month: "December",
+                year: 2013,
+                notified: "no",
+            },
+        ];
+
+        function createDb() {
+            const createRequest = window.indexedDB.open(DB_NAME, DB_VERSION);
+            createRequest.onerror = (event) => {
+                errorElm.innerHTML = event.target.error;
+            };
+            createRequest.onsuccess = (event) => {
+                db = event.target.result;
+                successElm.innerHTML = `${DB_NAME} created. (version: ${event.target.result.version})`;
+                db.close();
+            };
+        }
+
+        function createObjectStore() {
+            const DBOpenRequest = window.indexedDB.open(DB_NAME, DB_VERSION_AFTER_CREATED);
+            DBOpenRequest.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                const objectStore = db.createObjectStore(objectStoreName, { keyPath: "id" });
+                successElm.innerHTML = `${objectStoreName} created in ${DB_NAME}`;
+                db.close();
+            };
+        }
+
+        function crudOperation(crud) {
+            if (['insert', 'select', 'update', 'delete'].includes(crud)) {
+                successElm.innerHTML += `Operation: ${crud}`;
+                const DBOpenRequest = window.indexedDB.open(DB_NAME);
+                DBOpenRequest.onerror = (event) => {
+                    errorElm.innerHTML += event.target.error;
+                };
+                DBOpenRequest.onsuccess = (event) => {
+                    const left = $('#left');
+                    db = DBOpenRequest.result;
+                    const transaction = db.transaction([objectStoreName], 'readwrite');
+                    transaction.oncomplete = (event) => {
+                        successElm.innerHTML += `<li>Transaction completed.</li>`;
+                    };
+                    transaction.onerror = (event) => {
+                        errorElm.innerHTML += `<li>Transaction not opened due to error: ${transaction.error}</li>`;
+                    };
+                    const objectStore = transaction.objectStore(objectStoreName);
+
+                    if (crud == 'insert') {
+                        //use 'update' method
+                        //const objectStoreRequest = objectStore.add(xxx);
+                    } else if (crud == 'select') {
+                        const objectStoreRequest = objectStore.get('1111');
+                        objectStoreRequest.onerror = (event) => {
+                            errorElm.innerHTML += `<li>Request failed: ${event.target.error}</li>`;
+                        }
+                        objectStoreRequest.onsuccess = (event) => {
+                            if (typeof objectStoreRequest.result === 'undefined') {
+                                successElm.innerHTML += `${objectStoreRequest.result}`;
+                            } else {
+                                successElm.innerHTML += `<li>Request successful.</li>`;
+                                left.html(objectStoreRequest.result.divs.join(''));
+                            }
+                        };
+                    } else if (crud == 'update') { // inserted if id not exist
+                        let leftChildren = [];
+                        for (i = 0; i < left[0].children.length; i++) {
+                            leftChildren.push(left[0].children[i].outerHTML);
+                        }
+                        const objectStoreRequest = objectStore.put({ id: '1111', divs: leftChildren });
+                        objectStoreRequest.onerror = (event) => {
+                            errorElm.innerHTML += `<li>Request failed: ${event.target.error}</li>`;
+                        }
+                        objectStoreRequest.onsuccess = (event) => {
+                            successElm.innerHTML += `<li>Request successful.</li>`;
+                        };
+                    } else if (crud == 'delete') {
+                        const objectStoreRequest = objectStore.delete('1111');
+                        objectStoreRequest.onerror = (event) => {
+                            errorElm.innerHTML += `<li>Request failed: ${event.target.error}</li>`;
+                        }
+                        objectStoreRequest.onsuccess = (event) => {
+                            successElm.innerHTML += `<li>Request successful.</li>`;
+                        };
+                    } else {
+                        errorElm.innerHTML = `<il>...</li>`;
+                    }
+                    db.close();
+                };
+            } else {
+                errorElm.innerHTML += `Please input one of the followings: 'insert', 'select', 'update', 'delete'`;
+            }
+            // const DBOpenRequest = window.indexedDB.open(DB_NAME);
+        }
+
+        function deleteObjectStore() {
+            const DBOpenRequest = window.indexedDB.open(DB_NAME, DB_VERSION_AFTER_DELETED);
+            DBOpenRequest.onerror = (event) => {
+                //console.log("error");
+                errorElm.innerHTML = event.target.error;
+            };
+            DBOpenRequest.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                const objectStoreDelete = db.deleteObjectStore(objectStoreName);
+                successElm.innerHTML = `ObjectStore: ${objectStoreName} in ${DB_NAME} deleted`;
+            };
+        }
+        function deleteDb() {
+            const createRequest = window.indexedDB.deleteDatabase(DB_NAME);
+            successElm.innerHTML = `DB: ${DB_NAME} deleted`;
+        }
+
+        function resetDb() {
+            deleteObjectStore();
+            deleteDb();
+            createDb();
+            createObjectStore();
+        }
+    </script>
+    <script>
+        function deleteMe(elm) {
+            //alert('me');
+            elm.parentElement.remove();
+        }
+    </script>
+</body>
+
+</html>
