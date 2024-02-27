@@ -1,0 +1,44 @@
+a = {items: [
+    {
+        items: [
+            {items: 'text'},
+            {items: 'text'},
+        ]
+    },
+    {
+        items: [
+            {items: 'text'},
+            {items: 'text'},
+        ]
+    },
+]}
+c=a.items[0].items[0]
+c.items=''
+a
+{items: [
+    {
+        items: [
+            {items: ''},
+            {items: 'text'},
+        ]
+    },
+    {
+        items: [
+            {items: 'text'},
+            {items: 'text'},
+        ]
+    },
+]}
+
+function operate(loc) {
+  for (let j = 0; j < loc.length; j++) {
+    tmp = tmp.items[j]
+  }
+  console.log(tmp)
+} // これでは指定できない > locでなくparentnodeを指定する
+
+obj = ...
+p=obj.items[0]
+function oneDepth(p) {
+  onedepth(p.items[])
+}
