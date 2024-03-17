@@ -107,8 +107,11 @@
         .nested {
             /* padding: 16px 10px; */
             /* border: 1px dotted #bbb; */
-            border: 1px solid rgb(255, 180, 180);
+            border-radius: 8px;
+            border: 2px solid rgba(255, 180, 180, 0.5);
+            /* margin-top: -1px; */
             padding: 10px 0px 10px 0px;
+            /* z-index: -20; */
         }
 
         .accordion-collapse {
@@ -186,6 +189,13 @@
             right: 8px;
         }
 
+        #evaluate-btn, #clear-where-clause-btn {
+            /* position: absolute; */
+            /* top: 70px; */
+            /* left: 8px; */
+            margin: 2px;
+        }
+
         .navbar {
             background-color: rgba(0, 0, 0, 0.4);
         }
@@ -205,8 +215,9 @@
             background-color: rgba(255, 255, 255, 0.5);
         }
 
-        select, input {
-            border-radius: 3px;
+        select,
+        input {
+            border-radius: 8px;
             background-color: rgba(255, 255, 255, 0.5);
         }
 
@@ -221,6 +232,20 @@
 
         span.badge {
             background-color: rgba(255, 255, 255, 0);
+        }
+
+        .card > select {
+            margin: 0px 3px;
+        }
+
+        .card > input {
+            margin: 0px 3px;
+        }
+
+        #where-clause {
+            color: whitesmoke;
+            font-size: small;
+            margin:2px;
         }
     </style>
 </head>
@@ -333,6 +358,17 @@
                     <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show"
                         aria-labelledby="panelsStayOpen-headingOne">
                         <div class="accordion-body" id="center1">
+                            <div class="card item" data-type="date"><svg class="svg-icon handle" width="24"
+                                height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>col_date</div>
+                            <div class="card item" data-type="timestamp"><svg class="svg-icon handle" width="24"
+                                height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>col_timestamp</div>
+                            <div class="card item" data-type="text"><svg class="svg-icon handle" width="24" height="24">
+                                    <use xlink:href="#box-arrow-left" />
+                                </svg>col_text</div>
                             <div class="card item" data-type="varchar(5)"><svg class="svg-icon handle" width="24"
                                     height="24">
                                     <use xlink:href="#box-arrow-left" />
@@ -341,17 +377,10 @@
                                     height="24">
                                     <use xlink:href="#box-arrow-left" />
                                 </svg>col_integer</div>
-                            <div class="card item" data-type="text"><svg class="svg-icon handle" width="24" height="24">
-                                    <use xlink:href="#box-arrow-left" />
-                                </svg>col_text</div>
                             <div class="card item" data-type="interval"><svg class="svg-icon handle" width="24"
                                     height="24">
                                     <use xlink:href="#box-arrow-left" />
                                 </svg>col_interval</div>
-                            <div class="card item" data-type="timestamp"><svg class="svg-icon handle" width="24"
-                                    height="24">
-                                    <use xlink:href="#box-arrow-left" />
-                                </svg>col_timestamp</div>
                         </div>
                     </div>
                 </div>
@@ -418,13 +447,13 @@
                     <div id="panelsStayOpen-collapseFour" class="accordion-collapse collapse"
                         aria-labelledby="panelsStayOpen-headingFour">
                         <div class="accordion-body" id="center4">
-                            <div class="card item">
+                            <div id="andor-option" class="card item">
                                 <svg class="svg-icon handle" width="24" height="24">
                                     <use xlink:href="#box-arrow-left" />
                                 </svg>
-                                <select>
-                                    <option value="" selected>AND</option>
-                                    <option value="">OR</option>
+                                <select onchange="setSelectedAndOr(this);">
+                                    <option value="and" selected>and</option>
+                                    <option value="or">or</option>
                                 </select>
                                 <div class="nested"></div>
                             </div>
@@ -433,11 +462,11 @@
                 </div>
             </div>
             <div id="andor" class="item">
-                <select>
-                    <option value="" selected>AND</option>
-                    <option value="">OR</option>
+                <select onchange="setSelectedAndOr(this);">
+                    <option value="and" selected>and</option>
+                    <option value="or">or</option>
                 </select>
-                <div id="right" class="dragula-container nested">
+                <div id="right" class="dragula-container nested was-validated">
                     <div class="card item">
                         <!-- <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">99+</span> -->
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
@@ -468,22 +497,55 @@
                     </div>
                 </div>
             </div>
+            <div class="d-flex">
+                <button id="evaluate-btn" class="btn btn-light" onclick="evaluateWhereClause()">Evaluate</button>
+                <button id="clear-where-clause-btn" class="btn btn-light" onclick="$('#where-clause').html(''); showSQL();">Clear</button>
+            </div>
+            <div id="where-clause"></div>
         </div>
     </div>
     <script>
+        function setSelectedAndOr(el) {
+            // $(el).find('option[value='+el.value+']').attr('selected', 'selected')
+            $(el).find('option').eq(el.selectedIndex).attr('selected', 'selected')
+            $(el).find('option').eq(el.selectedIndex == 1 ? 0 : 1).removeAttr('selected')
+            // console.log(el.selectedIndex);
+        }
+        function setSelectedValue(el) {
+            // $(el).find('option[value='+el.value+']').attr('selected', 'selected')
+            $(el).find('option').not(el.selectedIndex).removeAttr('selected')
+            $(el).find('option').eq(el.selectedIndex).attr('selected', 'selected')
+            // console.log(el.selectedIndex);
+        }
+        function setInput(el) {
+            $(el).attr('value', el.value);
+        }
+    </script>
+    <script>
         var drake1 = dragula([document.querySelector('#left'), document.querySelector('#center1'), document.querySelector('#center2'), document.querySelector('#center3'), document.querySelector('#center4'), document.querySelector('#right')], {
             copy: true,
-            moves: function (el, container, handle) {
-                return handle.classList.contains('handle'); // elements allowed to drag
-            }
-        }).on('drop', (el) => {
-            el.className += ' ex-moved card';
+            moves: function (el, source, handle, sibling) {
+                //return handle.classList.contains('handle'); // elements allowed to drag
+                return handle.classList.contains('handle')
+            },
+            accepts: function (el, target, source, sibling) {
+                // return true; // elements can be dropped in any of the `containers` by default
+                // return $(el).attr('id') == 'andor-option'
+                return target !== document.getElementById('left') || $(el).attr('id') !== 'andor-option'
+            },
+            invalid: function (el, handle) {
+                return false; // don't prevent any drags from initiating by default
+            },
+        }).on('drop', (el, target, source, sibling) => {
+            el.className += ' ex-moved';
             el.children[0].remove(); // remove handle
-            if (el.children[0] !== undefined) {
+            $(el).removeAttr('id')
+            if (el.children[0] !== undefined) { // for andor-option element
                 drake1.containers.push(el.children[1]);
                 //drake2.containers.push(el.children[1]);
                 drake3.containers.push(el.children[1]);
             }
+            // for all the element dragged
             let spanEl = document.createElement('span');
             spanEl.className = 'svg-icon position-absolute top-0 start-100 translate-middle badge rounded-pill';
             spanEl.setAttribute('onclick', 'deleteMe(this);');
@@ -495,23 +557,26 @@
             svgEl.appendChild(useEl);
             spanEl.appendChild(svgEl);
             el.prepend(spanEl);
-            if (el.getAttribute('data-type') !== null) {
-                el.innerHTML += '<select><option>=</option><option>>=</option><option><=</option><option>></option><option><</option><option>!=</option><option>like</option></select>'
-                if (el.getAttribute('data-type') == 'date') {
-                    el.innerHTML += '<input type="date"/>'
-                } else if (el.getAttribute('data-type') == 'timestamp') {
-                    el.innerHTML += '<input type="date"/><input type="time"/>'
-                } else if (el.getAttribute('data-type') == 'text') {
-                    el.innerHTML += '<input type="text"/>'
-                } else if (el.getAttribute('data-type').substr(0, 7) == 'varchar') {
-                    el.innerHTML += '<input type="text" maxlength="' + el.getAttribute('data-type').split('(')[1].split(')')[0] + '"/>'
-                    // "maxlength="'+el.getAttribute('data-type').split('(')[1].split(')')[0]+'"/>'
-                } else if (el.getAttribute('data-type') == 'integer') {
-                    el.innerHTML += '<input type="number"/>'
-                } else if (el.getAttribute('data-type') == 'interval') {
-                    el.innerHTML += '<input type="number"/><select><option>year</option><option>month</option><option>day</option><option>hour</option><option>minute</option><option>second</option></select>'
-                } else {
-                    //
+            // if dropped on the right
+            if (target == document.getElementById('right')) {
+                if (el.getAttribute('data-type') !== null) {
+                    el.innerHTML += '<select onchange="setSelectedValue(this);"><option selected>=</option><option>>=</option><option><=</option><option>></option><option><</option><option>!=</option><option>like</option><option>is null</option><option>is not null</option></select>'
+                    if (el.getAttribute('data-type') == 'date') {
+                        el.innerHTML += '<input type="date" value="1999-01-01" onchange="setInput(this)"/>'
+                    } else if (el.getAttribute('data-type') == 'timestamp') {
+                        el.innerHTML += '<input type="date" value="1999-01-01" onchange="setInput(this)"/><input type="time" value="23:59" onchange="setInput(this)"/>'
+                    } else if (el.getAttribute('data-type') == 'text') {
+                        el.innerHTML += '<input type="text" value="text" onchange="setInput(this)"/>'
+                    } else if (el.getAttribute('data-type').substr(0, 7) == 'varchar') {
+                        el.innerHTML += '<input type="text" value="varch" maxlength="' + el.getAttribute('data-type').split('(')[1].split(')')[0] + ' onchange="setInput(this)""/>'
+                        // "maxlength="'+el.getAttribute('data-type').split('(')[1].split(')')[0]+'"/>'
+                    } else if (el.getAttribute('data-type') == 'integer') {
+                        el.innerHTML += '<input type="number" value="0" onchange="setInput(this)"/>'
+                    } else if (el.getAttribute('data-type') == 'interval') {
+                        el.innerHTML += '<input type="number" value="1" onchange="setInput(this)"/><select onchange="setSelectedValue(this);"><option selected>year</option><option>month</option><option>day</option><option>hour</option><option>minute</option><option>second</option></select>'
+                    } else {
+                        //
+                    }
                 }
             }
         });
@@ -544,9 +609,9 @@
             let columns = [];
             for (let i = 0; i < $('#left').children().length; i++) {
                 //columns.push($('#left').children()[i].innerText);
-                columns.push([].reduce.call($('#left').children()[i].childNodes, function(a, b) { return a + (b.nodeType === 3 ? b.textContent : ''); }, '').replaceAll(' ','').replaceAll('\n',''));
+                columns.push([].reduce.call($('#left').children()[i].childNodes, function (a, b) { return a + (b.nodeType === 3 ? b.textContent : ''); }, '').replaceAll(' ', '').replaceAll('\n', '')); //
             }
-            $('#sql').html('<pre><code id="sqls" class="language-sql">select ' + columns.join(',\n ') + ' from tbl;</code><small class="language"><span>psql/plpgsql</span></small><button id="execute-btn" class="btn btn-light">Run</button></pre>');
+            $('#sql').html('<pre><code id="sqls" class="language-sql">select ' + columns.join(',\n ') + ' from tbl' + ($('#where-clause').html()==''?'':' where ' + $('#where-clause').html()) + ';</code><small class="language"><span>psql/plpgsql</span></small><button id="execute-btn" class="btn btn-light">Run</button></pre>');
             hljs.highlightAll();
         }
     </script>
@@ -691,6 +756,168 @@
             //alert('me');
             el.parentElement.remove();
         }
+    </script>
+    <script>
+        function removeEmptyNodeInContainer() {
+  document.querySelectorAll('#right div.nested').forEach(x => {
+    if(!x.hasChildNodes()) {
+      x.parentNode.remove()
+    }
+  })
+}
+function node2Obj(n) {
+  o = {};
+  o['items'] = [];
+  for (let i = 0; i < n.children.length; i++) {
+    if (n.children[i].nodeName == 'DIV') { // n.children[i]: div.nested, div.item, or 'xxx'
+      if (n.children[i].classList.contains('nested')) { // n.children[i]: div.nested
+        for (let j = 0; j < n.children[i].children.length; j++) { // for node containing input, convert itself
+          if (n.children[i].children[j] !== undefined) {
+            for (let jj = 0; jj < n.children[i].children[j].childNodes.length; jj++) {
+              if (n.children[i].children[j].childNodes[jj].nodeName === 'INPUT') { // input nodeの2つ前がtext nodeであるという設計を前提にしている
+                //↓ if ignoring data-type
+                //n.children[i].children[j].innerHTML = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" onclick="deleteMe(this);"><svg class="svg-icon" width="12" height="12"><use xlink:href="#x" /></svg></span>' + n.children[i].children[j].childNodes[jj-2].nodeValue
+                //↓ if caring about data-type
+                if (n.children[i].children[j].getAttribute('data-type') == 'date' || n.children[i].children[j].getAttribute('data-type') == 'text' || n.children[i].children[j].getAttribute('data-type').substr(0, 7) == 'varchar') {
+                  n.children[i].children[j].innerHTML = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" onclick="deleteMe(this);"><svg class="svg-icon" width="12" height="12"><use xlink:href="#x" /></svg></span>' + n.children[i].children[j].childNodes[jj-2].nodeValue + $(n.children[i].children[j].childNodes[jj-1], 'option:selected').val() + '\'' + n.children[i].children[j].childNodes[jj].value + '\''
+                } else if (n.children[i].children[j].getAttribute('data-type') == 'timestamp') {
+                  n.children[i].children[j].innerHTML = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" onclick="deleteMe(this);"><svg class="svg-icon" width="12" height="12"><use xlink:href="#x" /></svg></span>' + n.children[i].children[j].childNodes[jj-2].nodeValue + $(n.children[i].children[j].childNodes[jj-1], 'option:selected').val() + '\'' + n.children[i].children[j].childNodes[jj].value + 'T' + n.children[i].children[j].childNodes[jj+1].value + '\''
+                } else if (n.children[i].children[j].getAttribute('data-type') == 'integer') {
+                  n.children[i].children[j].innerHTML = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" onclick="deleteMe(this);"><svg class="svg-icon" width="12" height="12"><use xlink:href="#x" /></svg></span>' + n.children[i].children[j].childNodes[jj-2].nodeValue + $(n.children[i].children[j].childNodes[jj-1], 'option:selected').val() + n.children[i].children[j].childNodes[jj].value
+                } else if (n.children[i].children[j].getAttribute('data-type') == 'interval') {
+                  n.children[i].children[j].innerHTML = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" onclick="deleteMe(this);"><svg class="svg-icon" width="12" height="12"><use xlink:href="#x" /></svg></span>' + n.children[i].children[j].childNodes[jj-2].nodeValue + $(n.children[i].children[j].childNodes[jj-1], 'option:selected').val() + '\'' + n.children[i].children[j].childNodes[jj].value + $(n.children[i].children[j].childNodes[jj+1], 'option:selected').val() + '\''
+                } else {
+                  n.children[i].children[j].innerHTML = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" onclick="deleteMe(this);"><svg class="svg-icon" width="12" height="12"><use xlink:href="#x" /></svg></span>' + n.children[i].children[j].childNodes[jj-2].nodeValue
+                }
+              }
+            }
+          }
+        }
+        o['items'].push(n.children[i]);
+      } else if (n.children[i].classList.contains('item')) { // n.children[i]: div.item
+        if (n.children[i].children.length == 1) {
+          o['items'].push(n.children[i].textContent.replaceAll(' ', '').replaceAll('\n', ''));
+        //   o['items'].push(n.children[i].childNodes[n.children[i].childNodes.length-1]);
+        } else {
+          o['items'].push(n.children[i]);
+        }
+      }
+    } else if (n.children[i].nodeName == 'SELECT') { // n: div.item, n.children[i]: selected !div.nested
+      // o['selectTag'] = 'and';
+      o['selectTag'] = $(n.children[i], 'option:selected').val()
+    }
+  }
+  // if (o.items.length==0) {
+  //   return
+  // } else {
+  //   return o // {'items': , 'selectedTag':'and'}
+  // }
+  return o // {'items': , 'selectedTag':'and'}
+}
+function iterate1Deeper(o) {
+  for (let i = 0; i < o.items.length; i++) {
+    if (o.items[i].parentNode == undefined) { // 'text'.parentNode
+      // do nothing = stop iteration
+    } else {
+      o.items[i] = node2Obj(o.items[i]) // converted to node to obj // input: div > output: {items:[div, div]}
+      // if (!o.items[i].hasChildNode) { // 
+      //   // do nothing = stop iteration
+      // } else {
+      //   iterate1Deeper(o.items[i]) // param node
+      // }
+      iterate1Deeper(o.items[i]) // param node
+    }
+  }
+}
+function trimBySelect(j) {
+  if (j.selectTag == undefined) { // assuming that j.items = ["text", "text", "text"] but 
+  } else { // incl selectTag: json, 
+    if (j.items[0].items.length == 1) {
+      return j.items[0].items[0]
+    } else {
+      return '(' + j.items[0].items.join(' ' + j.selectTag + ' ') + ')'
+    }
+  }
+}
+function getTrimmablePosition(j, loc) {
+  let l = [...loc]
+  let a = {}
+  if (j.selectTag == undefined) {
+    // do nothing
+  } else {
+    let flag = false
+    for (let i = 0; i < j.items[0].items.length; i++) {
+      if (j.items[0].items[i].selectTag == undefined) {
+        a[i]=''
+      } else {
+        a[i]=i
+        flag = true
+      }
+    }
+    if (flag == false) {
+      //console.log(trimBySelect(j))
+      selectArr.push(l)
+    } else {
+      for (let i = 0; i < j.items[0].items.length; i++) {
+        if (j.items[0].items[i].selectTag == undefined) {
+        } else {
+          l.push(a[i])
+          let jj = { ...j.items[0].items[a[i]] }
+          getTrimmablePosition(jj, l)
+          l.pop()
+        }
+      }
+    }
+  }
+}
+function trimmer(o, a) {
+  if (a.length == 0) {
+    // return
+    o = trimBySelect(o)
+  } else if (a.length == 1) {
+    o.items[0].items[a[0]] = trimBySelect(o.items[0].items[a[0]])
+  } else if (a.length == 2) {
+    o.items[0].items[a[0]].items[0].items[a[1]] = trimBySelect(o.items[0].items[a[0]].items[0].items[a[1]])
+  } else if (a.length == 3) {
+    o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]] = trimBySelect(o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]])
+  } else if (a.length == 4) {
+    o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]].items[0].items[a[3]] = trimBySelect(o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]].items[0].items[a[3]])
+  } else if (a.length == 5) {
+    o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]].items[0].items[a[3]].items[0].items[a[4]] = trimBySelect(o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]].items[0].items[a[3]].items[0].items[a[4]])
+  } else if (a.length == 6) {
+    o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]].items[0].items[a[3]].items[0].items[a[4]].items[0].items[a[5]] = trimBySelect(o.items[0].items[a[0]].items[0].items[a[1]].items[0].items[a[2]].items[0].items[a[3]].items[0].items[a[4]].items[0].items[a[5]])
+  } else {
+    return
+  }
+  return o
+}
+function evaluateWhereClause() {
+removeEmptyNodeInContainer()
+root = document.getElementById('andor')
+ori = root.innerHTML
+json = node2Obj(root)
+iterate1Deeper(json) // remove inputs
+//json // json is correct
+selectArr = [] // initialize
+
+//getTrimmablePosition(json, [])
+let flag = true
+while(flag) {
+  getTrimmablePosition(json, []) // push locationp[i0,i2] to selectArr[[],[]]
+  if (JSON.stringify(selectArr) == '[[]]') { // selectArr.length == 0
+    //trimmer(json, [])
+    flag = false
+  } else {
+    for (let i = 0; i < selectArr.length; i++) {
+      trimmer(json, selectArr[i])
+    }
+    selectArr=[]
+  }
+}
+document.getElementById('where-clause').innerText = trimmer(json, [])
+showSQL()
+//successEl.innerHTML += trimmer(json, [])
+}
     </script>
 </body>
 
